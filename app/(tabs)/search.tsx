@@ -26,12 +26,15 @@ const Search = () => {
   );
 
   useEffect(() => {
-    if (movies && movies.length > 0 && movies[0]) {
-      updateSearchCount(searchQuery, movies[0]);
-    }
+    // if (movies && movies.length > 0 && movies[0]) {
+    //   updateSearchCount(searchQuery, movies[0]);
+    // }
     // updateSearchCount(searchQuery, movies[0]);
 
     const timeoutId = setTimeout(async () => {
+      if (movies && movies.length > 0 && movies[0]) {
+        updateSearchCount(searchQuery, movies[0]);
+      }
       if (searchQuery.trim()) {
         await loadMovies();
       } else {

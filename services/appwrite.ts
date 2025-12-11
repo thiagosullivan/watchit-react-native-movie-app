@@ -9,7 +9,6 @@ const client = new Client()
 
 const databases = new Databases(client);
 
-// Assumindo que 'Movie' é um tipo/interface definida em outro lugar
 export const updateSearchCount = async (
   query: string,
   movie?: Movie | null
@@ -19,13 +18,13 @@ export const updateSearchCount = async (
     return;
   }
 
+  console.log(movie, "MOVIE INFOS");
+
   try {
-    // 1. Listar documentos (rows) existentes usando listDocuments (NOVA SINTAXE)
     const result = await databases.listDocuments({
       databaseId: DATABASE_ID,
       collectionId: COLLECTION_ID,
       queries: [Query.equal("searchTerm", query)],
-      // total: false // Você pode adicionar isso se não precisar do total de documentos para otimização
     });
 
     console.log(
@@ -34,8 +33,7 @@ export const updateSearchCount = async (
     );
 
     if (result.documents.length > 0) {
-      // 2. Se o documento existir, incremente o contador e atualize (NOVA SINTAXE PARA updateDocument TAMBÉM)
-      const existingDocument = result.documents[0]; // Correção: pegamos o primeiro item do array 'documents'
+      const existingDocument = result.documents[0];
       const newCount = existingDocument.count + 1;
 
       await databases.updateDocument({
@@ -48,19 +46,21 @@ export const updateSearchCount = async (
       });
       console.log(`Contagem atualizada para ${newCount}`);
     } else {
-      // 3. Se não existir, crie um novo documento (NOVA SINTAXE PARA createDocument TAMBÉM)
       await databases.createDocument({
         databaseId: DATABASE_ID,
         collectionId: COLLECTION_ID,
-        documentId: ID.unique(), // Gera um ID único automaticamente
+        documentId: ID.unique(),
         data: {
           searchTerm: query,
           count: 1,
+          title: movie?.title,
+          movie_id: movie?.id,
+          poster_url: `https://image.tmdb.org/t/p/w500${movie?.poster_path}`,
         },
       });
-      console.log(`Novo registro criado para o termo: ${query}`);
+      console.log(`New query created: ${query}`);
     }
   } catch (error) {
-    console.error("Erro no updateSearchCount:", error);
+    console.error("Error:", error);
   }
 };
