@@ -1,5 +1,6 @@
 import { icons } from "@/constants/icons";
 import { fetchMovieDetails } from "@/services/api";
+import { toggleFavoriteMovie } from "@/services/appwrite";
 import useFetch from "@/services/useFetch";
 import { router, useLocalSearchParams } from "expo-router";
 import React from "react";
@@ -25,6 +26,13 @@ const MovieDetails = () => {
   const { data: movie, loading } = useFetch(() =>
     fetchMovieDetails(id as string)
   );
+
+  // const {
+  //   data: favoriteMovies,
+  //   // loading: trendingLoading,
+  //   // error: trendingError,
+  // } = useFetch(() => toggleFavoriteMovie(id as string));
+
   return (
     <View className="bg-primary flex-1">
       <ScrollView
@@ -40,6 +48,15 @@ const MovieDetails = () => {
             className="w-full h-[550px]"
             resizeMode="stretch"
           />
+          <View className="absolute right-10 top-10">
+            <TouchableOpacity onPress={() => toggleFavoriteMovie(id as string)}>
+              <Image
+                source={icons.save}
+                className="size-10"
+                tintColor="#ffffff"
+              />
+            </TouchableOpacity>
+          </View>
         </View>
         <View className="flex-col items-start justify-center mt-5 px-5">
           <Text className="text-white font-bold text-xl">{movie?.title}</Text>
