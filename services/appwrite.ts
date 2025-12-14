@@ -162,3 +162,27 @@ export const toggleFavoriteMovie = async (movieId: string | number | null) => {
     throw error;
   }
 };
+
+export const getFavoriteMovies = async () => {
+  try {
+    const response = await databases.listDocuments({
+      databaseId: DATABASE_ID,
+      collectionId: FAVORITES_ID,
+      queries: [
+        Query.orderDesc("$createdAt"), // Opcional: ordenar do mais recente para o mais antigo
+      ],
+    });
+
+    console.log(
+      "Lista completa de favoritos recuperada:",
+      response.documents.length,
+      "itens"
+    );
+
+    // Retorna a lista de documentos (que são seus filmes favoritos)
+    return response.documents;
+  } catch (error) {
+    console.error("Erro ao buscar a lista de favoritos:", error);
+    throw error;
+  }
+};

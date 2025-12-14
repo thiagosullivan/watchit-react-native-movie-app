@@ -1,10 +1,17 @@
 import { icons } from "@/constants/icons";
 import { fetchMovieDetails } from "@/services/api";
-import { toggleFavoriteMovie } from "@/services/appwrite";
+import { useFavorites } from "@/services/FavoritesContext";
 import useFetch from "@/services/useFetch";
 import { router, useLocalSearchParams } from "expo-router";
-import React from "react";
-import { Image, ScrollView, Text, TouchableOpacity, View } from "react-native";
+import React, { useState } from "react";
+import {
+  ActivityIndicator,
+  Image,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
 interface MovieInfoProps {
   label: string;
@@ -27,11 +34,21 @@ const MovieDetails = () => {
     fetchMovieDetails(id as string)
   );
 
-  // const {
-  //   data: favoriteMovies,
-  //   // loading: trendingLoading,
-  //   // error: trendingError,
-  // } = useFetch(() => toggleFavoriteMovie(id as string));
+  const { isMovieFavorited, toggleFavorite } = useFavorites();
+
+  const isFavorited = isMovieFavorited(id as string);
+  const [isToggling, setIsToggling] = useState(false);
+
+  const handleToggle = async () => {
+    setIsToggling(true);
+    try {
+      await toggleFavorite(id as string);
+    } catch (error) {
+      // Tratar erro
+    } finally {
+      setIsToggling(false);
+    }
+  };
 
   return (
     <View className="bg-primary flex-1">
@@ -48,34 +65,56 @@ const MovieDetails = () => {
             className="w-full h-[550px]"
             resizeMode="stretch"
           />
-          <View className="absolute right-10 top-10">
-            <TouchableOpacity onPress={() => toggleFavoriteMovie(id as string)}>
-              <Image
-                source={icons.save}
-                className="size-10"
-                tintColor="#ffffff"
-              />
-            </TouchableOpacity>
-          </View>
         </View>
         <View className="flex-col items-start justify-center mt-5 px-5">
-          <Text className="text-white font-bold text-xl">{movie?.title}</Text>
-          <View className="flex-row items-center gap-x-1 mt-2">
-            <Text className="text-light-200 text-sm">
-              {movie?.release_date?.split("-")[0]}
-            </Text>
-            <Text className="text-light-200 text-sm">{movie?.runtime}m</Text>
+          <View className="w-full flex-row justify-between">
+            <View>
+              <Text className="text-white font-bold text-xl">
+                {movie?.title}
+              </Text>
+              <View className="flex-row items-center gap-x-1 mt-2">
+                <Text className="text-light-200 text-sm">
+                  {movie?.release_date?.split("-")[0]}
+                </Text>
+                <Text className="text-light-200 text-sm">
+                  {movie?.runtime}m
+                </Text>
+              </View>
+              <View className="flex-row items-center bg-dark-100 px-2 py-1 rounded-md gap-x-1 mt-2">
+                <Image source={icons.star} className="size-4" />
+                <Text className="text-white font-bold text-sm">
+                  {Math.round(movie?.vote_average ?? 0)}/10
+                </Text>
+                <Text className="text-light-200 text-sm">
+                  ({movie?.vote_count} votes)
+                </Text>
+              </View>
+            </View>
+            <View className="">
+              <TouchableOpacity onPress={handleToggle}>
+                {isToggling ? (
+                  <ActivityIndicator size="small" color="#ffffff" />
+                ) : (
+                  <>
+                    {isFavorited ? (
+                      <Image
+                        source={icons.saved}
+                        className="size-10"
+                        tintColor="#ffffff"
+                      />
+                    ) : (
+                      <Image
+                        source={icons.save}
+                        className="size-10"
+                        tintColor="#ffffff"
+                      />
+                    )}
+                  </>
+                )}
+              </TouchableOpacity>
+              <Text>Teste</Text>
+            </View>
           </View>
-          <View className="flex-row items-center bg-dark-100 px-2 py-1 rounded-md gap-x-1 mt-2">
-            <Image source={icons.star} className="size-4" />
-            <Text className="text-white font-bold text-sm">
-              {Math.round(movie?.vote_average ?? 0)}/10
-            </Text>
-            <Text className="text-light-200 text-sm">
-              ({movie?.vote_count} votes)
-            </Text>
-          </View>
-
           <MovieInfo label="Overview" value={movie?.overview} />
           <MovieInfo
             label="Genres"
