@@ -49,7 +49,9 @@ export const FavoritesProvider = ({ children }) => {
   };
 
   const isMovieFavorited = (movieId: string | number) => {
-    return favorites.some((fav) => fav.movie_id === String(movieId));
+    return favorites.some((fav) => {
+      return String(fav.movie_id) === String(movieId);
+    });
   };
 
   return (
