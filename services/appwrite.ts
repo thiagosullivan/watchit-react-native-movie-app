@@ -20,7 +20,7 @@ export const updateSearchCount = async (
     return;
   }
 
-  console.log(movie, "MOVIE INFOS");
+  // console.log(movie, "MOVIE INFOS");
 
   try {
     const result = await databases.listDocuments({
@@ -29,10 +29,10 @@ export const updateSearchCount = async (
       queries: [Query.equal("searchTerm", query)],
     });
 
-    console.log(
-      "Resultado da busca no Appwrite (documents):",
-      result.documents
-    );
+    // console.log(
+    //   "Resultado da busca no Appwrite (documents):",
+    //   result.documents
+    // );
 
     if (result.documents.length > 0) {
       const existingDocument = result.documents[0];
@@ -46,7 +46,7 @@ export const updateSearchCount = async (
           count: newCount,
         },
       });
-      console.log(`Contagem atualizada para ${newCount}`);
+      // console.log(`Contagem atualizada para ${newCount}`);
     } else {
       await databases.createDocument({
         databaseId: DATABASE_ID,
@@ -60,7 +60,7 @@ export const updateSearchCount = async (
           poster_url: `https://image.tmdb.org/t/p/w500${movie?.poster_path}`,
         },
       });
-      console.log(`New query created: ${query}`);
+      // console.log(`New query created: ${query}`);
     }
   } catch (error) {
     console.error("Error:", error);
@@ -90,10 +90,9 @@ export const toggleFavoriteMovie = async (movieId: string | number | null) => {
     return;
   }
 
-  console.log(`Tentando alternar favorito para Movie ID: ${movieId}`);
+  // console.log(`Tentando alternar favorito para Movie ID: ${movieId}`);
 
   try {
-    // 1. Fazer fetch dos detalhes do filme no TMDB
     const response = await fetch(
       `${TMDB_CONFIG.BASE_URL}/movie/${movieId}?api_key=${TMDB_CONFIG.API_KEY}`,
       {
@@ -108,15 +107,15 @@ export const toggleFavoriteMovie = async (movieId: string | number | null) => {
 
     const movieData = await response.json();
 
-    // Formatar os dados para o Appwrite
     const formattedMovieData = {
-      movie_id: String(movieData.id), // Garantir que o ID é string para o Appwrite
+      // movie_id: String(movieData.id),
+      movie_id: movieData.id,
       title: movieData.title,
       release_date: movieData.release_date,
-      poster_url: `image.tmdb.org{movieData.poster_path}`,
+      poster_path: movieData.poster_path,
+      vote_average: movieData.vote_average,
     };
 
-    // 2. Verificar se o filme já existe na coleção de favoritos do Appwrite
     const existingFavorites = await databases.listDocuments({
       databaseId: DATABASE_ID,
       collectionId: FAVORITES_ID,
@@ -124,33 +123,31 @@ export const toggleFavoriteMovie = async (movieId: string | number | null) => {
     });
 
     if (existingFavorites.documents.length > 0) {
-      // O filme JÁ está na lista. Vamos removê-lo.
       const existingDocument = existingFavorites.documents[0];
 
       await databases.deleteDocument({
         databaseId: DATABASE_ID,
         collectionId: FAVORITES_ID,
-        documentId: existingDocument.$id, // Usa o ID interno do documento Appwrite
+        documentId: existingDocument.$id,
       });
 
-      console.log(`Filme removido dos favoritos: ${formattedMovieData.title}`);
+      // console.log(`Filme removido dos favoritos: ${formattedMovieData.title}`);
       return {
         status: "removed",
         title: formattedMovieData.title,
         movieId: movieId,
       };
     } else {
-      // O filme NÃO está na lista. Vamos adicioná-lo.
       await databases.createDocument({
         databaseId: DATABASE_ID,
         collectionId: FAVORITES_ID,
-        documentId: ID.unique(), // Gera um novo ID único
+        documentId: ID.unique(),
         data: formattedMovieData,
       });
 
-      console.log(
-        `Filme adicionado aos favoritos: ${formattedMovieData.title}`
-      );
+      // console.log(
+      //   `Filme adicionado aos favoritos: ${formattedMovieData.title}`
+      // );
       return {
         status: "added",
         title: formattedMovieData.title,
@@ -168,9 +165,7 @@ export const getFavoriteMovies = async () => {
     const response = await databases.listDocuments({
       databaseId: DATABASE_ID,
       collectionId: FAVORITES_ID,
-      queries: [
-        Query.orderDesc("$createdAt"), // Opcional: ordenar do mais recente para o mais antigo
-      ],
+      queries: [Query.orderDesc("$createdAt")],
     });
 
     console.log(
@@ -179,7 +174,6 @@ export const getFavoriteMovies = async () => {
       "itens"
     );
 
-    // Retorna a lista de documentos (que são seus filmes favoritos)
     return response.documents;
   } catch (error) {
     console.error("Erro ao buscar a lista de favoritos:", error);

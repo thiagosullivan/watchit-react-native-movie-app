@@ -9,6 +9,7 @@ interface Movie {
   overview: string;
   popularity: number;
   poster_path: string;
+  poster_url: string;
   release_date: string;
   video: boolean;
   vote_average: number;
